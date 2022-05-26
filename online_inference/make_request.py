@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import requests
 import os
 
@@ -9,17 +10,20 @@ TARGET = 'condition'
 if __name__ == '__main__':
 
     data = pd.read_csv(DATA_PATH).drop(columns=TARGET)
+    request_features = list(data.columns)
 
-    request_params = {
-        'data': data.values.tolist(),
-        'features': data.columns.tolist(),
-    }
+    for i, _ in enumerate(data):
+        request_data = [
+            x.item() if isinstance(x, np.generic) else x for x in data.iloc[i].tolist()
+        ]
 
-    response = requests.get(
-        'http://0.0.0.0:9090/predict',
-        json=request_params,
-    )
+        print(request_data)
 
-    print(response.status_code)
-    print(response.json())
+        response = requests.get(
+            'http://0.0.0.0:9090/predict',
+            json={'data': [request_data], 'features': request_features},
+        )
+        
+        print(response.status_code)
+        print(response.json())
     

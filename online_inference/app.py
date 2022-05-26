@@ -3,12 +3,19 @@ import os
 import logging
 from typing import NoReturn, List
 
-from fastapi import FastAPI, HTTPException
+from fastapi import (
+    FastAPI,
+    HTTPException
+)
+
 from sklearn.pipeline import Pipeline
 import uvicorn
 import pandas as pd
 
-from src.response import PredictResponse
+from src.response import (
+    PredictResponse,
+    InputDataRequest,
+)
 
 
 MODEL = None
@@ -76,7 +83,7 @@ def make_predict(
 
 
 @app.get('/predict')
-def predict(request) -> List[PredictResponse]:
+def predict(request: InputDataRequest) -> List[PredictResponse]:
     """ Predict for model. Call the make_predict function """
     if not health():
         logger.error('Model is not health!')
