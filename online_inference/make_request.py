@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 import os
 
-DATA_PATH = os.path.abspath('online_inference\\data\\heart_cleveland_upload.csv')
+DATA_PATH = os.path.abspath(os.path.join('data', 'heart_cleveland_upload.csv'))
 TARGET = 'condition'
 
 
