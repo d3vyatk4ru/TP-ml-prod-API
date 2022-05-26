@@ -28,6 +28,12 @@ def test_bad_endpoint():
 
 def test_predict():
     """ Make test for predict """
+
+    real_response = [
+        [{'id': 0, 'target': 0}],
+        [{'id': 0, 'target': 1}],
+    ]
+
     with TestClient(app) as client:
 
         data = pd.read_csv('data/test_data.csv')
@@ -48,6 +54,7 @@ def test_predict():
             )
 
             assert response.status_code == 200
+            assert response.json() == real_response[i]
 
 
 def test_load_model():
