@@ -3,16 +3,15 @@ import os
 import logging
 from typing import NoReturn, List
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from sklearn.pipeline import Pipeline
 import uvicorn
 import pandas as pd
 
-from src.respose import PredictResponse
+from src.response import PredictResponse
 
 
 MODEL = None
-TRANSFORMER = None
 
 
 logging.basicConfig(
@@ -30,7 +29,7 @@ app = FastAPI()
 @app.get('/')
 async def start():
     """ Print string on start service """
-    return 'Hello, bro!!!! DLKSLDA:D:KASDK:ASKDASLKDLA:S"DKSAAKASDSAJDAS"DASKDNKSANDKLSADJ"KSASAJDK'
+    return 'ML service is starting!'
 
 
 @app.on_event('startup')
@@ -39,21 +38,25 @@ async def load_model() -> NoReturn:
 
     global MODEL
 
-    # model_path = os.getenv('models/model.pkl')
-    model_path = os.path.abspath('models\log_reg.pkl')
+    model_path = os.getenv(
+      'PATH_TO_MODEL',
+       default='models/log_reg.pkl',
+    )
+
+    # model_path = os.path.abspath('models\log_reg.pkl')
 
     logger.info('Model %s loading...', model_path)
 
-    logger.info('Model %s successful loaded!', model_path)
-
     MODEL = load_pickle(model_path)
+
+    logger.info('Model %s successful loaded!', model_path)
 
 
 @app.get('/health')
 def health() -> bool:
     """ Reaturn status of model """
     logger.info('Check health model')
-    return 200 if not (MODEL is None) else 400
+    return True if not (MODEL is None) else False
 
 
 def make_predict(
@@ -61,7 +64,7 @@ def make_predict(
     features: List[str],
     model: Pipeline,
 ) -> List[PredictResponse]:
-    """ Make pridict """
+    """ Make predict """
     data = pd.DataFrame(data, columns=features)
 
     n_row = [i for i, _ in enumerate(data)]
@@ -77,7 +80,10 @@ def predict(request) -> List[PredictResponse]:
     """ Predict for model. Call the make_predict function """
     if not health():
         logger.error('Model is not health!')
-        raise Exception("Can't make predict: model is not health")
+        raise HTTPException(
+            status_code=404,
+            detail='Model not found'
+        )
 
     return make_predict(request.data, request.features, MODEL)
 
@@ -90,5 +96,4 @@ def load_pickle(path: str) -> Pipeline:
 
 
 if __name__ == '__main__':
-    uvicorn.main('app:app', host="0.0.0.0", port=os.getenv('PORT', 9090))
-    print(pd.__version__)
+    uvicorn.run("app:app", host='0.0.0.0', port=os.getenv('PORT', 9090))
